@@ -82,7 +82,7 @@ Generated 142 chunks from 21 documents
 ### 5. Start Development Server
 
 ```bash
-uvicorn src.main:app --reload --port 8000
+uvicorn rag_backend.main:app --reload --port 8000
 ```
 
 Server will start at:
@@ -127,7 +127,7 @@ See [contracts/chat-api.md](../specs/002-rag-integration/contracts/chat-api.md) 
 pytest
 
 # Run with coverage
-pytest --cov=src --cov-report=html
+pytest --cov=rag_backend --cov-report=html
 
 # Run specific test suite
 pytest tests/integration/test_rag_pipeline.py -v
@@ -140,7 +140,7 @@ pytest tests/unit/ -v
 
 ```
 backend/
-├── src/
+├── rag_backend/
 │   ├── main.py                      # FastAPI app entry point
 │   ├── config.py                    # Environment configuration
 │   ├── models/
@@ -182,13 +182,13 @@ backend/
 
 ```bash
 # Format code
-black src/ scripts/ tests/
+black rag_backend/ scripts/ tests/
 
 # Lint code
-ruff check src/ scripts/ tests/
+ruff check rag_backend/ scripts/ tests/
 
 # Type checking (if using mypy)
-mypy src/
+mypy rag_backend/
 ```
 
 ### Adding New Dependencies
