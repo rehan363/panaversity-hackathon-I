@@ -1,13 +1,18 @@
 """
-Chat query endpoint router for RAG system.
+Chat query endpoint router for RAG system using OpenAI Agents SDK.
 """
 
 from fastapi import APIRouter, Request, status
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 import logging
-from rag_backend.models.chat import ChatQueryRequest, ChatQueryResponse, ErrorResponse
-from rag_backend.services.rag_pipeline import get_rag_pipeline
+import time
+from datetime import datetime
+from openai_agents import Runner
+from openai_agents.exceptions import InputGuardrailTripwireTriggered, OutputGuardrailTripwireTriggered
+
+from rag_backend.models.chat import ChatQueryRequest, ChatQueryResponse, Citation
+from rag_backend.agents import get_orchestrator_agent, get_guardrail_response
 from rag_backend.utils.rate_limiter import limiter
 from rag_backend.utils.error_handlers import (
     InvalidRequest,
@@ -30,7 +35,7 @@ router = APIRouter(prefix="/api/chat", tags=["chat"])
 @limiter.limit("3/minute")
 async def query_chatbot(request: Request, query_request: ChatQueryRequest):
     """
-    Process a chat query through the RAG pipeline.
+    Process a chat query through the OpenAI Agents SDK system.
 
     Args:
         request: FastAPI request object (for rate limiting)
@@ -45,6 +50,8 @@ async def query_chatbot(request: Request, query_request: ChatQueryRequest):
         500: Internal server error
         503: Service unavailable (backend offline)
     """
+    start_time = time.time()
+
     try:
         # Validate query length
         if len(query_request.query) < 1 or len(query_request.query) > 500:
@@ -53,7 +60,7 @@ async def query_chatbot(request: Request, query_request: ChatQueryRequest):
                 {"query_length": len(query_request.query)}
             )
 
-        # Sanitize query (basic sanitization - strip whitespace)
+        # Sanitize query
         query_request.query = query_request.query.strip()
 
         if not query_request.query:
@@ -65,18 +72,100 @@ async def query_chatbot(request: Request, query_request: ChatQueryRequest):
             f"{query_request.query[:50]}..."
         )
 
-        # Get RAG pipeline
-        rag_pipeline = get_rag_pipeline()
+        # Get orchestrator agent
+        orchestrator = get_orchestrator_agent()
 
-        # Process query through RAG pipeline
-        response = await rag_pipeline.process_query(query_request)
+        # Create runner
+        runner = Runner()
+
+        # Run agent with user query
+        result = await runner.run(
+            agent=orchestrator,
+            messages=[{"role": "user", "content": query_request.query}]
+        )
+
+        # Extract answer from result
+        answer = result.final_output
+
+        # Extract citations from answer (look for citation pattern)
+        import re
+        citations = []
+        citation_pattern = r'\[Week (\d+), ([^\]]+), Part (\d+) of (\d+)\]'
+
+        for match in re.finditer(citation_pattern, answer):
+            week_num = int(match.group(1))
+            module = match.group(2)
+            chunk_idx = int(match.group(3)) - 1  # Convert to 0-based
+            total_chunks = int(match.group(4))
+
+            citation = Citation(
+                source=f"Week {week_num}, {module}",
+                chunk_index=chunk_idx,
+                total_chunks=total_chunks,
+                relevance_score=1.0,  # Agent-provided context assumed relevant
+                content_preview=None
+            )
+            citations.append(citation)
+
+        # Calculate processing time
+        processing_time_ms = int((time.time() - start_time) * 1000)
+
+        # Build response
+        response = ChatQueryResponse(
+            answer=answer,
+            citations=citations,
+            query_type=query_request.query_type,
+            session_id=query_request.session_id,
+            processing_time_ms=processing_time_ms,
+            timestamp=datetime.utcnow()
+        )
 
         logger.info(
-            f"Query processed successfully in {response.processing_time_ms}ms "
-            f"with {len(response.citations)} citations"
+            f"Query processed successfully in {processing_time_ms}ms "
+            f"with {len(citations)} citations"
         )
 
         return response
+
+    except InputGuardrailTripwireTriggered as e:
+        # Input guardrail blocked the query
+        logger.warning(f"Input guardrail triggered: {e}")
+
+        guardrail_name = str(e).split()[0] if str(e) else "unknown"
+        error_message = get_guardrail_response(guardrail_name, e.guardrail_output)
+
+        # Return error as response (not raising exception, per UX design)
+        processing_time_ms = int((time.time() - start_time) * 1000)
+
+        return ChatQueryResponse(
+            answer=error_message,
+            citations=[],
+            query_type=query_request.query_type,
+            session_id=query_request.session_id,
+            processing_time_ms=processing_time_ms,
+            timestamp=datetime.utcnow()
+        )
+
+    except OutputGuardrailTripwireTriggered as e:
+        # Output guardrail detected issue with response
+        logger.warning(f"Output guardrail triggered: {e}")
+
+        # Still return the response but with a warning appended
+        guardrail_name = str(e).split()[0] if str(e) else "unknown"
+        warning_message = get_guardrail_response(guardrail_name, e.guardrail_output)
+
+        answer = result.final_output + warning_message
+
+        processing_time_ms = int((time.time() - start_time) * 1000)
+
+        return ChatQueryResponse(
+            answer=answer,
+            citations=[],
+            query_type=query_request.query_type,
+            session_id=query_request.session_id,
+            processing_time_ms=processing_time_ms,
+            timestamp=datetime.utcnow()
+        )
 
     except InvalidRequest as e:
         logger.warning(f"Invalid request: {e.message}")
