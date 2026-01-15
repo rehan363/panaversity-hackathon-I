@@ -2,7 +2,7 @@
  * Message list component for displaying chat history
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import type { ChatMessage } from './types';
 import { Citation } from './Citation';
 import styles from './styles.module.css';
@@ -14,11 +14,38 @@ interface MessageListProps {
 
 export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive, but only if user is already at the bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoading]);
+    if (isScrolledToBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isLoading, isScrolledToBottom]);
+
+  // Check scroll position to determine if user is at the bottom
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      const { scrollTop, clientHeight, scrollHeight } = scrollContainerRef.current;
+      const threshold = 10; // Pixels from bottom to consider "at bottom"
+      setIsScrolledToBottom(scrollTop + clientHeight >= scrollHeight - threshold);
+    }
+  };
+
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (scrollContainer) {
+      scrollContainer.addEventListener('scroll', handleScroll);
+      // Initial check
+      handleScroll();
+    }
+    return () => {
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', handleScroll);
+      }
+    };
+  }, []);
 
   const formatTime = (date: Date) => {
     return new Date(date).toLocaleTimeString('en-US', {
@@ -29,7 +56,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading })
 
   if (messages.length === 0 && !isLoading) {
     return (
-      <div className={styles.messageList}>
+      <div className={styles.messageList} ref={scrollContainerRef}>
         <div className={styles.emptyState}>
           <div className={styles.emptyStateIcon}>💬</div>
           <div className={styles.emptyStateTitle}>Welcome to AI Assistant!</div>
@@ -44,7 +71,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading })
   }
 
   return (
-    <div className={styles.messageList}>
+    <div className={styles.messageList} ref={scrollContainerRef}>
       {messages.map((message) => (
         <div
           key={message.id}
@@ -92,3 +119,4 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading })
     </div>
   );
 };
+

@@ -125,36 +125,16 @@ This is a web app with:
 
 ### Implementation for User Story 3
 
-- [ ] T053 [US3] Enhance useSessionStorage.ts in physical-ai-textbook/src/hooks/ to persist full conversation history to sessionStorage
-- [ ] T054 [US3] Update MessageList.tsx in physical-ai-textbook/src/components/RAGChatbot/ to load conversation history on mount from sessionStorage
-- [ ] T055 [US3] Add scroll restoration in MessageList.tsx (scroll to bottom on new messages, allow scroll up for history)
-- [ ] T056 [US3] Add "Clear history" button in ChatModal.tsx to reset conversation (clear sessionStorage)
-- [ ] T057 [US3] Add message timestamps in MessageList.tsx for each exchange
+- [x] T053 [US3] Enhance useSessionStorage.ts in physical-ai-textbook/src/hooks/ to persist full conversation history to sessionStorage
+- [x] T054 [US3] Update MessageList.tsx in physical-ai-textbook/src/components/RAGChatbot/ to load conversation history on mount from sessionStorage
+- [x] T055 [US3] Add scroll restoration in MessageList.tsx (scroll to bottom on new messages, allow scroll up for history)
+- [x] T056 [US3] Add "Clear history" button in ChatModal.tsx to reset conversation (clear sessionStorage)
+- [x] T057 [US3] Add message timestamps in MessageList.tsx for each exchange
 - [ ] T058 [US3] Test history persistence: ask questions → refresh page → verify history restored
 
 **Checkpoint**: All user stories should now be independently functional. Students have full RAG chat experience with history.
 
----
 
-## Phase 6: Admin Indexing Endpoint (Priority: P3)
-
-**Goal**: Provide an admin endpoint to trigger re-indexing of documentation content when new chapters are added or content is updated.
-
-**Independent Test**: Call POST /admin/index with admin token and verify that indexing job starts and updates index_metadata.json with new chunk count and timestamp.
-
-### Implementation for Admin Endpoint
-
-- [ ] T059 [P] Create backend/src/models/admin.py with Pydantic models (IndexRequest, IndexResponse)
-- [ ] T060 Create backend/src/routers/admin.py with POST /admin/index endpoint
-- [ ] T061 Add admin token validation in backend/src/routers/admin.py (Bearer token from ADMIN_TOKEN env var)
-- [ ] T062 Integrate index_docs.py script as async task in backend/src/routers/admin.py
-- [ ] T063 Add job status tracking in backend/src/routers/admin.py (job_id, estimated_time_seconds)
-- [ ] T064 Update backend/data/index_metadata.json after successful indexing with new stats
-- [ ] T065 Test admin endpoint: POST /admin/index → verify indexing starts → check index_metadata.json updated
-
-**Checkpoint**: Admin can trigger re-indexing when content is updated.
-
----
 
 ## Phase 7: Database Integration for Session Storage (Priority: P2)
 
@@ -164,10 +144,10 @@ This is a web app with:
 
 ### Implementation for Database Integration
 
-- [ ] T066 [P] Create backend/src/services/database_service.py with asyncpg client for Neon Postgres
-- [ ] T067 Create database migration script backend/scripts/setup_database.py with query_sessions and session_messages table schemas from data-model.md
-- [ ] T068 [P] Create backend/src/models/session.py with Pydantic models (QuerySession, SessionMessage)
-- [ ] T069 Implement session creation in backend/src/services/database_service.py (generate anonymous session_token)
+- [x] T066 [P] Create backend/src/services/database_service.py with asyncpg client for Neon Postgres
+- [x] T067 Create database migration script backend/scripts/setup_database.py with query_sessions and session_messages table schemas from data-model.md
+- [x] T068 [P] Create backend/src/models/session.py with Pydantic models (QuerySession, SessionMessage)
+- [x] T069 Implement session creation in backend/src/services/database_service.py (generate anonymous session_token)
 - [ ] T070 Implement message persistence in backend/src/services/database_service.py (save user and assistant messages)
 - [ ] T071 Implement message retrieval in backend/src/services/database_service.py (get session history by token)
 - [ ] T072 Update POST /api/chat/query in backend/src/routers/chat.py to persist messages to database after response

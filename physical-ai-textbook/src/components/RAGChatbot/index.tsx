@@ -2,30 +2,20 @@
  * Main RAG Chatbot component with floating action button and text selection handling.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ChatModal } from './ChatModal';
 import { useChatAPI } from '../../hooks/useChatAPI';
-import { useSessionStorage } from '../../hooks/useSessionStorage';
+import useSessionStorage from '../../hooks/useSessionStorage'; // Correct import for default export
 import { useTextSelection } from '../../hooks/useTextSelection';
+import type { ChatMessage } from './types'; // Import ChatMessage type
 import styles from './styles.module.css';
 
 export const RAGChatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { messages, isLoading, error, sendQuery, clearError, clearMessages, rateLimitSeconds } = useChatAPI();
-  const { clearHistory } = useSessionStorage(messages);
-  const { selection, clearSelection } = useTextSelection();
+  const [chatHistory, setChatHistory] = useSessionStorage<ChatMessage[]>('rag-chat-history', []);
 
-  // Load history on mount
-  useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem('rag-chat-history');
-      if (stored) {
-        console.log('Chat history loaded');
-      }
-    } catch (err) {
-      console.error('Error loading history:', err);
-    }
-  }, []);
+  const { isLoading, error, sendQuery, clearError, rateLimitSeconds } = useChatAPI(chatHistory, setChatHistory);
+  const { selection, clearSelection } = useTextSelection();
 
   const handleOpenChat = () => {
     setIsOpen(true);
@@ -41,8 +31,8 @@ export const RAGChatbot: React.FC = () => {
   };
 
   const handleClearHistory = () => {
-    clearMessages();
-    clearHistory();
+    setChatHistory([]);
+    clearError(); // Also clear any errors
   };
 
   const handleAskAboutSelection = () => {
@@ -89,12 +79,13 @@ export const RAGChatbot: React.FC = () => {
       <ChatModal
         isOpen={isOpen}
         onClose={handleCloseChat}
-        messages={messages}
+        messages={chatHistory} // Pass chatHistory to ChatModal
         isLoading={isLoading}
         error={error}
         onSubmitQuery={handleSubmitQuery}
         rateLimitSeconds={rateLimitSeconds}
         selection={selection}
+        onClearHistory={handleClearHistory} // Pass the clear history handler
       />
     </>
   );

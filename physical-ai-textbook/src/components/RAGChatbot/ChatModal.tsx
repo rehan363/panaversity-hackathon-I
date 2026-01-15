@@ -18,6 +18,7 @@ interface ChatModalProps {
   onSubmitQuery: (query: string) => void;
   rateLimitSeconds: number;
   selection: SelectionData | null;
+  onClearHistory: () => void; // New prop for clearing history
 }
 
 export const ChatModal: React.FC<ChatModalProps> = ({
@@ -29,6 +30,7 @@ export const ChatModal: React.FC<ChatModalProps> = ({
   onSubmitQuery,
   rateLimitSeconds,
   selection,
+  onClearHistory, // Destructure new prop
 }) => {
   // Close on Escape key
   const handleKeyDown = useCallback(
@@ -71,6 +73,14 @@ export const ChatModal: React.FC<ChatModalProps> = ({
           <h2 id="modal-title" className={styles.modalTitle}>
             AI Assistant
           </h2>
+          <button
+            className={styles.clearHistoryButton} // New class for styling
+            onClick={onClearHistory}
+            aria-label="Clear chat history"
+            title="Clear Chat History"
+          >
+            Clear History
+          </button>
           <button
             className={styles.closeButton}
             onClick={onClose}

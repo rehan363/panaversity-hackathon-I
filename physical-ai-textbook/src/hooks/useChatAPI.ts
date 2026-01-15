@@ -1,24 +1,18 @@
 /**
- * Custom hook for chat API client with error handling and rate limiting
+ * Custom hook for chat API client with error handling, rate limiting, and session persistence.
  */
 
-import { useState, useCallback, useRef } from 'react';
-import type { QueryRequest, QueryResponse, ErrorResponse, ChatMessage } from '../components/RAGChatbot/types';
-
 interface UseChatAPIReturn {
-  messages: ChatMessage[];
   isLoading: boolean;
   error: string | null;
   sendQuery: (query: string, queryType?: 'full_text' | 'text_selection', context?: any) => Promise<void>;
   clearError: () => void;
-  clearMessages: () => void;
   rateLimitSeconds: number;
 }
 
 const API_BASE_URL = '/api/chat';
 
-export function useChatAPI(): UseChatAPIReturn {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+export function useChatAPI(messages: ChatMessage[], setMessages: (newMessages: ChatMessage[]) => void): UseChatAPIReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rateLimitSeconds, setRateLimitSeconds] = useState(0);
@@ -60,7 +54,7 @@ export function useChatAPI(): UseChatAPIReturn {
         timestamp: new Date(),
       };
 
-      setMessages((prev) => [...prev, userMessage]);
+      setMessages([...messages, userMessage]);
 
       try {
         const requestBody: QueryRequest = {
@@ -115,7 +109,7 @@ export function useChatAPI(): UseChatAPIReturn {
           processing_time_ms: data.processing_time_ms,
         };
 
-        setMessages((prev) => [...prev, assistantMessage]);
+        setMessages([...messages, userMessage, assistantMessage]); // Update messages with both user and assistant
       } catch (err) {
         console.error('Chat API error:', err);
 
@@ -129,25 +123,18 @@ export function useChatAPI(): UseChatAPIReturn {
         setIsLoading(false);
       }
     },
-    [startRateLimitCountdown]
+    [startRateLimitCountdown, messages, setMessages]
   );
 
   const clearError = useCallback(() => {
     setError(null);
   }, []);
 
-  const clearMessages = useCallback(() => {
-    setMessages([]);
-    setError(null);
-  }, []);
-
   return {
-    messages,
     isLoading,
     error,
     sendQuery,
     clearError,
-    clearMessages,
     rateLimitSeconds,
   };
 }
