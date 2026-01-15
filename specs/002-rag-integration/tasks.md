@@ -154,7 +154,7 @@ This is a web app with:
 - [x] T073 Add session_id parameter to ChatQueryRequest in backend/src/models/chat.py (optional, auto-generated if missing)
 - [x] T074 Update useChatAPI.ts in physical-ai-textbook/src/hooks/ to include session_id in requests
 - [x] T075 Generate and store anonymous session_token in sessionStorage on first query
-- [ ] T076 Add GET /api/chat/history endpoint in backend/src/routers/chat.py to retrieve conversation history by session_token
+- [x] T076 Add GET /api/chat/history endpoint in backend/src/routers/chat.py to retrieve conversation history by session_token
 - [ ] T077 Update useSessionStorage.ts to fetch history from /api/chat/history on mount (fallback to sessionStorage if offline)
 - [ ] T078 Test database persistence: ask questions → refresh page → verify history loaded from database
 
