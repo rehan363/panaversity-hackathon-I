@@ -166,10 +166,10 @@ This is a web app with:
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T079 [P] Add comprehensive docstrings to all backend services (embedding_service.py, vector_store.py, llm_service.py, rag_pipeline.py, database_service.py)
-- [ ] T080 [P] Add TypeScript JSDoc comments to all React components and hooks
-- [ ] T081 Add logging middleware in backend/src/main.py for request/response tracking
-- [ ] T082 [P] Add error logging in all backend services with structured logging
+- [x] T079 [P] Add comprehensive docstrings to all backend services (embedding_service.py, vector_store.py, llm_service.py, rag_pipeline.py, database_service.py)
+- [x] T080 [P] Add TypeScript JSDoc comments to all React components and hooks
+- [x] T081 Add logging middleware in backend/src/main.py for request/response tracking
+- [x] T082 [P] Add error logging in all backend services with structured logging
 - [ ] T083 Update backend/README.md with deployment instructions for Vercel/Railway
 - [ ] T084 [P] Create deployment configuration backend/Dockerfile for containerized deployment
 - [ ] T085 [P] Create GitHub Actions workflow .github/workflows/backend-deploy.yml for backend deployment

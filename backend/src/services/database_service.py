@@ -1,11 +1,14 @@
 import asyncpg
 import os
 import json
+import logging # Added logging import
 from typing import Optional, List, Literal
 from uuid import UUID, uuid4
 from datetime import datetime
 
 from models.session import QuerySession, SessionMessage, Citation # Import QuerySession
+
+logger = logging.getLogger(__name__) # Initialize logger
 
 class DatabaseService:
     """
@@ -29,13 +32,18 @@ class DatabaseService:
 
         db_url = os.getenv("NEON_DATABASE_URL")
         if not db_url:
+            logger.error("NEON_DATABASE_URL environment variable not set.", extra={"error_type": "ConfigurationError"})
             raise ValueError("NEON_DATABASE_URL environment variable not set.")
 
         try:
             self.connection_pool = await asyncpg.create_pool(db_url)
-            print("Successfully connected to Neon Postgres database.")
+            logger.info("Successfully connected to Neon Postgres database.", extra={"db_url_prefix": db_url.split('@')[-1] if '@' in db_url else db_url})
         except Exception as e:
-            print(f"Failed to connect to Neon Postgres database: {e}")
+            logger.error(
+                f"Failed to connect to Neon Postgres database: {e}",
+                exc_info=True,
+                extra={"error_type": "DatabaseConnectionError", "db_url_prefix": db_url.split('@')[-1] if '@' in db_url else db_url, "exception_message": str(e)}
+            )
             raise
 
     async def disconnect(self):
@@ -43,7 +51,7 @@ class DatabaseService:
         Closes the database connection pool.
         """
         if self.connection_pool:
-            print("Disconnecting from Neon Postgres database.")
+            logger.info("Disconnecting from Neon Postgres database.", extra={"status": "disconnecting"})
             await self.connection_pool.close()
             self.connection_pool = None
 
@@ -52,30 +60,54 @@ class DatabaseService:
         Executes a database query without returning results (e.g., INSERT, UPDATE, DELETE).
         """
         if not self.connection_pool:
-            await self.connect() # Ensure connection is established
+            await self.connect()
 
-        async with self.connection_pool.acquire() as connection:
-            await connection.execute(query, *args)
+        try:
+            async with self.connection_pool.acquire() as connection:
+                await connection.execute(query, *args)
+        except Exception as e:
+            logger.error(
+                f"Failed to execute query: {query[:100]}... Error: {e}",
+                exc_info=True,
+                extra={"error_type": "DatabaseExecuteError", "query_preview": query[:100], "exception_message": str(e)}
+            )
+            raise
 
     async def fetch(self, query: str, *args):
         """
         Executes a database query and returns all results (e.g., SELECT).
         """
         if not self.connection_pool:
-            await self.connect() # Ensure connection is established
+            await self.connect()
 
-        async with self.connection_pool.acquire() as connection:
-            return await connection.fetch(query, *args)
+        try:
+            async with self.connection_pool.acquire() as connection:
+                return await connection.fetch(query, *args)
+        except Exception as e:
+            logger.error(
+                f"Failed to fetch results for query: {query[:100]}... Error: {e}",
+                exc_info=True,
+                extra={"error_type": "DatabaseFetchError", "query_preview": query[:100], "exception_message": str(e)}
+            )
+            raise
 
     async def fetchrow(self, query: str, *args):
         """
         Executes a database query and returns a single row.
         """
         if not self.connection_pool:
-            await self.connect() # Ensure connection is established
+            await self.connect()
 
-        async with self.connection_pool.acquire() as connection:
-            return await connection.fetchrow(query, *args)
+        try:
+            async with self.connection_pool.acquire() as connection:
+                return await connection.fetchrow(query, *args)
+        except Exception as e:
+            logger.error(
+                f"Failed to fetch row for query: {query[:100]}... Error: {e}",
+                exc_info=True,
+                extra={"error_type": "DatabaseFetchRowError", "query_preview": query[:100], "exception_message": str(e)}
+            )
+            raise
 
     async def create_session(self) -> QuerySession:
         """
@@ -102,7 +134,12 @@ class DatabaseService:
                 message_count=record['message_count']
             )
         else:
-            raise Exception("Failed to create new session.")
+            error_msg = "Failed to create new session."
+            logger.error(
+                error_msg,
+                extra={"error_type": "CreateSessionError", "session_token": session_token}
+            )
+            raise Exception(error_msg)
 
     async def save_message(
         self,
@@ -149,7 +186,19 @@ class DatabaseService:
                         created_at=message_record['created_at']
                     )
                 else:
-                    raise Exception("Failed to save message.")
+                    error_msg = "Failed to save message."
+                    logger.error(
+                        error_msg,
+                        extra={"error_type": "SaveMessageError", "session_id": str(session_id), "role": role, "query_type": query_type, "content_preview": content[:100]}
+                    )
+                    raise Exception(error_msg)
+        except Exception as e:
+            logger.error(
+                f"Failed to save message for session {session_id}: {e}",
+                exc_info=True,
+                extra={"error_type": "SaveMessageException", "session_id": str(session_id), "role": role, "query_type": query_type, "exception_message": str(e)}
+            )
+            raise
 
     async def get_session_messages(self, session_id: UUID) -> List[SessionMessage]:
         """
@@ -178,6 +227,14 @@ class DatabaseService:
                 created_at=record['created_at']
             ))
         return messages
+
+    except Exception as e:
+        logger.error(
+            f"Failed to retrieve messages for session {session_id}: {e}",
+            exc_info=True,
+            extra={"error_type": "GetSessionMessagesError", "session_id": str(session_id), "exception_message": str(e)}
+        )
+        raise
 
 
 # Global instance to be used throughout the application
