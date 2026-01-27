@@ -1,5 +1,5 @@
-import {themes as prismThemes} from 'prism-react-renderer';
-import type {Config} from '@docusaurus/types';
+import { themes as prismThemes } from 'prism-react-renderer';
+import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
@@ -92,15 +92,16 @@ const config: Config = {
         configureWebpack() {
           return {
             devServer: {
-              proxy: {
-                '/api': {
-                  target: 'http://localhost:8000',
+              proxy: [
+                {
+                  context: ['/api'],
+                  target: 'http://127.0.0.1:8000',
                   changeOrigin: true,
                   secure: false,
                 },
-              },
+              ],
             },
-          };
+          } as any;
         },
       };
     },

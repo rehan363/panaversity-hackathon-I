@@ -7,10 +7,11 @@ from pydantic import BaseModel, Field
 # Re-defining Citation model for backend consistency with frontend types
 class Citation(BaseModel):
     source: str
-    chunk_id: str
+    chunk_index: int
+    total_chunks: int
     relevance_score: float = Field(ge=0.0, le=1.0)
-    file_path: Optional[str] = None # Added from frontend types
-    content_preview: Optional[str] = None # Added from frontend types
+    file_path: Optional[str] = None
+    content_preview: Optional[str] = None
 
 class QuerySession(BaseModel):
     """

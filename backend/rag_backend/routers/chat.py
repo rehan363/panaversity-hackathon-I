@@ -14,7 +14,7 @@ from rag_backend.utils.error_handlers import (
     RateLimitExceeded,
     ServiceUnavailable
 )
-from src.services.database_service import db_service # Import db_service
+from rag_backend.services.database_service import db_service
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
@@ -73,6 +73,16 @@ async def query_chatbot(request: Request, response: Response, query_request: Cha
         # Handle session: get existing or create new
         if query_request.session_id:
             session_id = query_request.session_id
+            # Verify session exists in database, create if it doesn't
+            session_exists = await db_service.fetchrow(
+                "SELECT id FROM query_sessions WHERE id = $1", 
+                session_id
+            )
+            if not session_exists:
+                logger.info(f"Session {session_id} not found in DB, creating it")
+                new_session = await db_service.create_session()
+                session_id = new_session.id
+                logger.info(f"Created new session: {session_id}")
         else:
             new_session = await db_service.create_session()
             session_id = new_session.id
@@ -102,7 +112,7 @@ async def query_chatbot(request: Request, response: Response, query_request: Cha
         await db_service.save_message(
             session_id=session_id,
             role='assistant',
-            content=result.response,
+            content=result.answer,
             citations=result.citations,
             query_type=query_request.query_type
         )
@@ -116,7 +126,7 @@ async def query_chatbot(request: Request, response: Response, query_request: Cha
 
         # Add session_id to the response
         chat_response = ChatQueryResponse(
-            answer=result.response,
+            answer=result.answer,
             citations=result.citations,
             query_type=query_request.query_type,
             session_id=session_id,

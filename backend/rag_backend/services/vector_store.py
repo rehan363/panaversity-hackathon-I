@@ -202,6 +202,10 @@ class VectorStore:
             VectorSearchError: If search operation fails
         """
         try:
+            # Validate query embedding
+            if not query_embedding or len(query_embedding) == 0:
+                raise VectorSearchError("Cannot search with empty or invalid query embedding")
+            
             top_k = top_k or settings.top_k_results
             score_threshold = score_threshold or settings.similarity_threshold
 
@@ -228,11 +232,13 @@ class VectorStore:
 
             results = []
             for scored_point in search_result:
+                chapter = scored_point.payload.get("chapter")
                 result = {
                     "id": scored_point.id,
                     "score": scored_point.score,
                     "content": scored_point.payload.get("content", ""),
-                    "chapter": scored_point.payload.get("chapter"),
+                    "chapter": chapter,
+                    "week": chapter,  # Alias for compatibility with RAG pipeline
                     "module": scored_point.payload.get("module", ""),
                     "file_path": scored_point.payload.get("file_path", ""),
                     "chunk_index": scored_point.payload.get("chunk_index", 0),

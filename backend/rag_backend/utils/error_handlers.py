@@ -4,6 +4,7 @@ Custom exception handlers and error definitions for the RAG backend.
 
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from rag_backend.models.chat import ErrorResponse
 from datetime import datetime
 import logging
@@ -82,7 +83,7 @@ async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) 
 
     return JSONResponse(
         status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-        content=error_response.model_dump(),
+        content=jsonable_encoder(error_response),
         headers={"Retry-After": str(exc.retry_after)}
     )
 
@@ -101,7 +102,7 @@ async def service_unavailable_handler(request: Request, exc: ServiceUnavailable)
 
     return JSONResponse(
         status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-        content=error_response.model_dump()
+        content=jsonable_encoder(error_response)
     )
 
 
@@ -119,7 +120,7 @@ async def invalid_request_handler(request: Request, exc: InvalidRequest) -> JSON
 
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
-        content=error_response.model_dump()
+        content=jsonable_encoder(error_response)
     )
 
 
@@ -136,7 +137,7 @@ async def embedding_generation_error_handler(request: Request, exc: EmbeddingGen
 
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content=error_response.model_dump()
+        content=jsonable_encoder(error_response)
     )
 
 
@@ -153,7 +154,7 @@ async def vector_search_error_handler(request: Request, exc: VectorSearchError) 
 
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content=error_response.model_dump()
+        content=jsonable_encoder(error_response)
     )
 
 
@@ -170,7 +171,7 @@ async def llm_generation_error_handler(request: Request, exc: LLMGenerationError
 
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content=error_response.model_dump()
+        content=jsonable_encoder(error_response)
     )
 
 
@@ -187,7 +188,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
 
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content=error_response.model_dump()
+        content=jsonable_encoder(error_response)
     )
 
 

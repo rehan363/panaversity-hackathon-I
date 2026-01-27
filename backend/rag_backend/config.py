@@ -44,6 +44,14 @@ class Settings(BaseSettings):
     llm_provider: str = "auto"
     primary_llm_model: str = "gemini-2.0-flash-exp"  # Used when provider is "auto"
 
+    # Embedding Provider Configuration
+    # Options: "huggingface", "jina", "gemini", "auto"
+    # "auto" will try HuggingFace first (free, no key required)
+    embedding_provider: str = "auto"
+    huggingface_api_key: str = ""  # Optional - works without key for public models
+    huggingface_embedding_model: str = "sentence-transformers/all-mpnet-base-v2"  # 768 dims
+    jina_api_key: str = ""  # Optional - for Jina AI embeddings
+
     # Qdrant Configuration
     qdrant_url: str
     qdrant_api_key: Optional[str] = None
@@ -65,7 +73,7 @@ class Settings(BaseSettings):
 
     # RAG Pipeline Configuration
     top_k_results: int = 5
-    similarity_threshold: float = 0.7
+    similarity_threshold: float = 0.3
     chunk_size: int = 768
     chunk_overlap: int = 100
 

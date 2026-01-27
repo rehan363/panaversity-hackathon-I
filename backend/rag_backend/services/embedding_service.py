@@ -83,6 +83,7 @@ class EmbeddingService:
                 exc_info=True,
                 extra={"error_type": "UnexpectedError", "text_length": len(text), "exception_message": str(e)}
             )
+            raise EmbeddingGenerationError(f"Embedding generation failed: {e}")
 
     async def generate_query_embedding(self, query: str) -> List[float]:
         """
@@ -138,6 +139,7 @@ class EmbeddingService:
                 exc_info=True,
                 extra={"error_type": "UnexpectedError", "query_length": len(query), "exception_message": str(e)}
             )
+            raise EmbeddingGenerationError(f"Query embedding generation failed: {e}")
 
     async def generate_batch_embeddings(self, texts: List[str]) -> List[List[float]]:
         """
