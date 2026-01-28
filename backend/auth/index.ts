@@ -14,6 +14,11 @@ app.use("*", cors({
     credentials: true,
 }));
 
+// Root route to show the server is alive
+app.get("/", (c) => {
+    return c.text("Better-Auth Sidecar is running! Use /api/auth for authentication.");
+});
+
 app.on(["POST", "GET"], "/api/auth/*", (c) => {
     return auth.handler(c.req.raw);
 });

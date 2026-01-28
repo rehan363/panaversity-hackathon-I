@@ -131,24 +131,23 @@ export function useChatAPI(messages: ChatMessage[], setMessages: (newMessages: C
       setMessages([...messages, userMessage]);
 
       try {
-        // Get the current session token from Better-Auth if user is logged in
-        const authSession = await fetch('/api/auth/get-session').then(r => r.json()).catch(() => null);
-        // Actually, let's just use the current browser cookies which Better-Auth uses, 
-        // but for the Python backend we might need to explicitly pass the token if it's on a different domain.
-        // Better-Auth stores the token in a cookie named "better-auth.session_token" by default.
+        // Get the current session token from Better-Auth cookies
+        const tokenMatch = document.cookie.match(/better-auth\.session_token=([^;]+)/) ||
+          document.cookie.match(/better-auth\.session-token=([^;]+)/);
+        const token = tokenMatch ? tokenMatch[1] : null;
 
         const requestBody: QueryRequest = {
           query,
           query_type: queryType,
           context,
           session_id: sessionId,
-          auth_token: document.cookie.split('; ').find(row => row.startsWith('better-auth.session_token='))?.split('=')[1],
         };
 
         const response = await fetch(`${API_BASE_URL}/query`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'Authorization': token ? `Bearer ${token}` : '',
           },
           body: JSON.stringify(requestBody),
         });

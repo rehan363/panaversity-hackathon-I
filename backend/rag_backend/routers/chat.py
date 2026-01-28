@@ -15,6 +15,8 @@ from rag_backend.utils.error_handlers import (
     ServiceUnavailable
 )
 from rag_backend.services.database_service import db_service
+from rag_backend.services.auth_verifier import auth_verifier
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
@@ -48,6 +50,37 @@ async def query_chatbot(request: Request, response: Response, query_request: Cha
     """
     start_time = time.time()
     session_id: Optional[UUID] = None
+    user_info: Optional[dict] = None
+
+    # Step 1: Session Verification (Requirement #5)
+    # Better-Auth tokens are typically passed in the Authorization header or cookies
+    auth_header = request.headers.get("Authorization")
+    token = None
+    
+    if auth_header and auth_header.startswith("Bearer "):
+        token = auth_header.split(" ")[1]
+    else:
+        # Check cookies as well, Better-Auth often uses 'better-auth.session_token'
+        token = request.cookies.get("better-auth.session-token") or request.cookies.get("better-auth.session_token")
+
+    if token:
+        user_info = await auth_verifier.verify_session(token)
+        if user_info:
+            logger.info(f"Authenticated user: {user_info.get('email')} (Python: {user_info.get('python_experience')}, Hardware: {user_info.get('hardware_experience')})")
+        else:
+            logger.warning("Invalid session token provided")
+    
+    # Requirement: User should be logged in to access the course/chatbot
+    if not user_info:
+        logger.warning("Unauthenticated request to chatbot")
+        # In a real app we might raise 401, but for the hackathon we can allow it 
+        # or enforce it. The user said: "a user should not access the course when is it not logged in"
+        # Since the frontend already blocks access, we'll just log it for now or raise 401.
+        # Let's raise 401 to be secure as per the USER_REQUEST
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required to use the AI Assistant"
+        )
 
     try:
         # Validate query length

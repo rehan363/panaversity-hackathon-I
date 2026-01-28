@@ -16,14 +16,15 @@ class AuthVerifier:
         Verifies a session token against the Better-Auth 'session' table.
         Returns user data and background if valid, else None.
         """
+        # Note: Better-Auth/Drizzle columns are often camelCase and require quotes in Postgres
         query = """
             SELECT 
-                u.id, u.name, u.email, u.role, 
+                u.id, u.name, u.email, 
                 u.python_experience, u.hardware_experience, 
-                s.expires_at
+                s."expiresAt"
             FROM "session" s
-            JOIN "user" u ON s.user_id = u.id
-            WHERE s.token = $1 AND s.expires_at > NOW();
+            JOIN "user" u ON s."userId" = u.id
+            WHERE s.token = $1 AND s."expiresAt" > NOW();
         """
         try:
             record = await db_service.fetchrow(query, token)
