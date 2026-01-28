@@ -25,12 +25,12 @@ const config: Config = {
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   // For GitHub pages deployment, use '/<projectName>/'
-  baseUrl: '/panaversity-hackathon-I/',
+  baseUrl: '/TheHumanoidBlueprint/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'rehan363', // Usually your GitHub org/user name.
-  projectName: 'panaversity-hackathon-I', // Usually your repo name.
+  projectName: 'TheHumanoidBlueprint', // Usually your repo name.
 
   // Add KaTeX CSS for math rendering
   stylesheets: [
@@ -60,7 +60,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/rehan363/panaversity-hackathon-I/tree/main/physical-ai-textbook',
+            'https://github.com/rehan363/TheHumanoidBlueprint/tree/main/physical-ai-textbook',
         },
         blog: {
           showReadingTime: true,
@@ -71,7 +71,7 @@ const config: Config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/rehan363/panaversity-hackathon-I/tree/main/physical-ai-textbook',
+            'https://github.com/rehan363/TheHumanoidBlueprint/tree/main/physical-ai-textbook',
           // Useful options to enforce blogging best practices
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
@@ -111,6 +111,8 @@ const config: Config = {
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
     colorMode: {
+      defaultMode: 'light',
+      disableSwitch: false,
       respectPrefersColorScheme: true,
     },
     navbar: {
@@ -131,7 +133,7 @@ const config: Config = {
           position: 'right',
         },
         {
-          href: 'https://github.com/rehan363/panaversity-hackathon-I',
+          href: 'https://github.com/rehan363/TheHumanoidBlueprint',
           label: 'GitHub',
           position: 'right',
         },
@@ -149,7 +151,7 @@ const config: Config = {
             },
             {
               label: 'GitHub Repository',
-              href: 'https://github.com/rehan363/panaversity-hackathon-I',
+              href: 'https://github.com/rehan363/TheHumanoidBlueprint',
             },
           ],
         },
@@ -158,7 +160,7 @@ const config: Config = {
           items: [
             {
               label: 'Report Issue',
-              href: 'https://github.com/rehan363/panaversity-hackathon-I/issues',
+              href: 'https://github.com/rehan363/TheHumanoidBlueprint/issues',
             },
           ],
         },
