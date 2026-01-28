@@ -1,0 +1,107 @@
+.authCard {
+    max-width: 450px;
+    margin: 2rem auto;
+    padding: 2.5rem;
+    background: var(--ifm-background-surface-color);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.authCard h2 {
+    margin-bottom: 0.5rem;
+    color: var(--ifm-color-primary);
+    font-size: 1.8rem;
+}
+
+.authCard p {
+    color: var(--ifm-color-emphasis-700);
+    margin-bottom: 2rem;
+}
+
+.inputGroup {
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.inputGroup label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.inputGroup input {
+    padding: 0.8rem;
+    border: 1px solid var(--ifm-color-emphasis-300);
+    border-radius: 8px;
+    background: var(--ifm-background-color);
+    color: var(--ifm-font-color-base);
+    transition: border-color 0.2s;
+}
+
+.inputGroup input:focus {
+    outline: none;
+    border-color: var(--ifm-color-primary);
+}
+
+.divider {
+    margin: 2rem 0;
+    border: 0;
+    border-top: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.profileSection h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.helpText {
+    font-size: 0.85rem;
+    color: var(--ifm-color-emphasis-600);
+    margin-bottom: 1.5rem !important;
+}
+
+.rangeGroup {
+    margin-bottom: 1.5rem;
+}
+
+.rangeGroup label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.rangeGroup input[type="range"] {
+    width: 100%;
+    margin: 0.5rem 0;
+}
+
+.rangeLabels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--ifm-color-emphasis-600);
+}
+
+.errorMessage {
+    background: rgba(255, 0, 0, 0.1);
+    color: #ff4444;
+    padding: 0.8rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    border: 1px solid rgba(255, 0, 0, 0.2);
+}
+
+.footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--ifm-color-emphasis-700);
+}
+
+.footer a {
+    color: var(--ifm-color-primary);
+    font-weight: 600;
+}

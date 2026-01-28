@@ -29,6 +29,7 @@ class ChatQueryRequest(BaseModel):
         description="Context for text selection queries (required when query_type is text_selection)"
     )
     session_id: Optional[UUID] = Field(None, description="Session identifier for conversation history")
+    auth_token: Optional[str] = Field(None, description="Better-Auth session token for personalization")
 
     @validator("context")
     def validate_context(cls, v, values):

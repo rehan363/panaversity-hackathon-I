@@ -1,48 +1,36 @@
-# Plan: 003-authentication
+# Plan: 003-authentication (STRICT COMPLIANCE)
 
-## Architecture Overview
-The authentication system will be built using a decoupled architecture where Better-Auth manages the session lifecycle and Drizzle ORM interfaces with Neon Postgres.
+## Architecture: Dual-Service Unified Database
+To strictly follow Requirement #5, we will deploy a **Hybrid Backend**.
 
-## Components
+### 1. Better-Auth Service (`backend/auth`)
+- **Runtime**: Node.js managed by `npm`.
+- **Primary Tool**: Better-Auth SDK.
+- **Database**: Drizzle Adapter connecting to Neon Postgres.
+- **Responsibility**: Signup (including custom background fields), Login, Session management, and CORS protection.
 
-### 1. Backend Service (Next.js or Express/Node.js)
-- **Decision**: Better-Auth requires a Node.js runtime. We will implement it either in a dedicated Next.js API route or an Express server.
-- **Rationale**: Better-Auth's server-side logic handles cookie management and validation securely.
+### 2. RAG Backend (`backend/rag_backend`)
+- **Runtime**: Python managed by `uv`.
+- **Database**: Shared access to the same Neon Postgres instance.
+- **Responsibility**: Retrieving user background from the `user` table using the session token provided by the frontend.
 
-### 2. Database Layer
-- **Neon Postgres**: Serverless database for user data.
-- **Drizzle DMM**: schema-first approach for type-safe database access.
+## Implementation Workflow
 
-### 3. Frontend Integration (Docusaurus)
-- **Better-Auth Client SDK**: Used in the browser to interact with the auth server.
-- **React Context**: To provide auth state (`session`, `isLoading`) to all Docusaurus components.
+### Phase 1: Better-Auth Foundation (Node.js)
+- [ ] Create `backend/auth` workspace.
+- [ ] Configure `auth.ts` with custom fields for: `software_background`, `hardware_background`.
+- [ ] Initialize the Neon Postgres schema via Better-Auth CLI.
 
-## Implementation Steps
+### Phase 2: Python Integration (uv)
+- [ ] Implement a `SessionValidator` utility in Python.
+- [ ] This utility will directly query the `session` and `user` tables in Neon to verify the frontend's token.
+- [ ] Update `rag_backend` config to include `BETTER_AUTH_SECRET` if needed for shared logic.
 
-### Phase 1: Infrastructure
-- [ ] Initialize Neon Postgres project.
-- [ ] Set up Drizzle config and schema.
-- [ ] Run first migration to create auth tables.
+### Phase 3: Frontend Swizzling (Docusaurus)
+- [ ] Add `@better-auth/react` to the Docusaurus project.
+- [ ] Create the Signup/Login UI components with the custom background questionnaire.
+- [ ] Swizzle the `Root` component to wrap the textbook in an `AuthProvider`.
 
-### Phase 2: Auth Server
-- [ ] Install Better-Auth and dependencies.
-- [ ] Configure `auth.ts` with Drizzle adapter and Email provider.
-- [ ] Implement API routes for auth (signup, login, logout, session).
-
-### Phase 3: Frontend Setup
-- [ ] Install `@better-auth/react` in the Docusaurus project.
-- [ ] Swizzle the `Root` component to add `AuthProvider`.
-- [ ] Swizzle the `Navbar` to add the `AuthButton`.
-
-### Phase 4: Personalization Onboarding
-- [ ] Update `signUp` to include `background` fields.
-- [ ] Implement a post-signup onboarding modal or page if fields are missing.
-
-## Security Decisions
-- **ADR 001: Session Management**: Use HTTP-only cookies for session storage to prevent XSS.
-- **ADR 002: Secure Passwords**: Use Better-Auth's default Argon2/Bcrypt implementation.
-- **ADR 003: CORS**: Explicitly define `trustedOrigins` to prevent CSRF.
-
-## Risks & Mitigations
-- **Neon Cold Starts**: Implement retry logic in the Drizzle client.
-- **SSR Mismatch**: Ensure the Docusaurus build doesn't depend on client-side cookies for static rendering.
+## Security & Compliance
+- **ADR 009: Strict Tooling**: Use Better-Auth exclusively for IDP (Identity Provider) functionality to ensure hackathon eligibility.
+- **ADR 010: Database Share**: Both services connect to Neon. Use connection pooling (PgBouncer/Neon Pooler) to manage the dual-connection load.

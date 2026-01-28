@@ -127,6 +127,10 @@ const config: Config = {
           label: 'Curriculum',
         },
         {
+          type: 'custom-auth',
+          position: 'right',
+        },
+        {
           href: 'https://github.com/rehan363/panaversity-hackathon-I',
           label: 'GitHub',
           position: 'right',

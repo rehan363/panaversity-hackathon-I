@@ -1,50 +1,31 @@
-# Specification: 003-authentication
+# Specification: 003-authentication (STRICT COMPLIANCE)
 
 ## Overview
-Implement a robust authentication and onboarding system for the Physical AI & Robotics Textbook platform using Better-Auth, Drizzle ORM, and Neon Postgres.
+Implement the authentication system strictly following **Hackathon Requirement #5**, which mandates the use of **Better-Auth** for signup and signin. This system will be integrated with the existing Python RAG backend while maintaining a dedicated Better-Auth service for full requirement compliance.
 
 ## Goals
-- Secure user signup and signin.
-- Collect user background profile (hardware/software knowledge) during signup.
-- Manage user sessions persistently.
-- Provide a responsive UI for auth in the Docusaurus navbar.
+- **Strict Compliance**: Implement signup/signin using [Better-Auth](https://www.better-auth.com/).
+- **Data Collection**: Gather user background data (hardware/software) during signup for personalization.
+- **Unified Identity**: Enable the Python RAG backend to recognize the Better-Auth session for localized explanations.
+- **Traceability**: All auth tables must exist in the shared Neon Postgres database as specified in the Better-Auth documentation.
+
+## Success Criteria (Hackathon Scoring)
+- [ ] **Bonus Points (+50)**: Better-Auth is functional and managing sessions.
+- [ ] **Bonus Points (+50)**: Personalization based on background (Python/Hardware) is implemented.
+- [ ] **Core Requirement**: Session persistence in Neon Postgres is verified.
+
+## Tech Stack
+- **Authentication Engine**: Better-Auth (Node.js/TypeScript).
+- **RAG Engine**: FastAPI (Python/uv).
+- **Shared Database**: Neon Serverless Postgres.
+- **Frontend**: Docusaurus 3 (React).
 
 ## User Stories
-- **US1**: As a new student, I want to sign up with my email and name so that I can track my laboratory progress.
-- **US2**: As a returning student, I want to log in to my account so that I can access my personalized textbook view.
-- **US3**: As a student during signup, I want to specify my background (e.g., Python, ROS 2, Hardware experience) so the content can be personalized for me.
-- **US4**: As an authenticated user, I want to see my profile icon in the navbar and be able to log out.
-
-## Requirements
-
-### R1: Authentication Engine
-- Use **Better-Auth** as the core authentication library.
-- Support **Email & Password** provider.
-- Store sensitive data (passwords) using secure hashing (Argon2/Bcrypt) via Better-Auth defaults.
-
-### R2: Database
-- Use **Neon Serverless Postgres** as the primary relational database.
-- Use **Drizzle ORM** for schema definition and migrations.
-- Primary tables: `user`, `session`, `account`, `verification`.
-
-### R3: Custom User Profile Fields
-- `role`: Default to 'student'.
-- `background`: JSON or separate fields for software/hardware experience level.
-- `onboarding_complete`: Boolean to track if profile data was collected.
-
-### R4: Frontend Integration
-- Integrate with **Docusaurus v3**.
-- Swizzle the `Navbar` to include an `AuthButton` component.
-- Swizzle the `Root` component to wrap the app in an `AuthProvider`.
+- **US1**: As a user, I sign up using the Better-Auth form. I answer questions about my Python and Hardware experience.
+- **US2**: As an authenticated user, my session is stored in the `session` table in Neon.
+- **US3**: As a user, when I ask the RAG chatbot a question, the Python backend reads my background from the database to simplify or enrich the explanation.
 
 ## Constraints
-- Must not block static page generation (SSG).
-- Must handle Neon database cold starts gracefully.
-- Must follow the **Security & Privacy** principles defined in the Constitution.
-
-## Success Criteria
-- [ ] User can successfully sign up and their data is visible in Neon Postgres.
-- [ ] User can log in and a valid session is created in the browser (HTTP-only cookies).
-- [ ] Profile data is editable and persistent.
-- [ ] Navbar updates dynamically based on auth state.
-- [ ] "Logout" clears the session and redirects to home.
+- **Library Lock-in**: Better-Auth MUST be used for the auth engine (Requirement #5).
+- **Data Sovereignty**: User profile and background data must be stored in the primary `user` table.
+- **Environment**: Must support cross-origin authentication from GitHub Pages to the deployed backend.
